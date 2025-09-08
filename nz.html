@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>紐西蘭北島深度探索計畫</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony (Beige, Soft Green, Muted Blue, Dark Grey) -->
+    <!-- Application Structure Plan: A tab-based SPA with four main sections: Itinerary Overview, Thematic Exploration, Practical Info, and a Budget Planner. This non-linear structure allows the user to research and plan freely, which is more effective for a long, semi-structured trip than a rigid daily itinerary. The focus is on enabling user-driven discovery of activities and practicalities. -->
+    <!-- Visualization & Content Choices: 1. Transport Costs: Goal=Compare, Viz=Bar Chart, Interaction=Dropdown to change duration, Justification=Visually compares costs effectively, Library=Chart.js. 2. Budget: Goal=Organize, Viz=Donut Chart, Interaction=Real-time update from text inputs, Justification=Makes budgeting interactive and easy to understand, Library=Chart.js. 3. Itinerary: Goal=Inform, Viz=HTML/CSS Grid, Interaction=Hover tooltips, Justification=Provides a high-level visual structure for the trip. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #FDFDF6;
+            color: #333;
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            background-color: #A6C4A6;
+            color: white;
+            border-bottom-width: 4px;
+            border-color: #6A8E6A;
+        }
+        .tab-button:hover:not(.active) {
+            background-color: #E9F0E9;
+        }
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        .activity-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .activity-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <header class="bg-white shadow-md sticky top-0 z-10">
+        <div class="container mx-auto px-6 py-4">
+            <h1 class="text-3xl font-bold text-gray-800 text-center">紐西蘭北島月度深度探索計畫</h1>
+            <p class="text-center text-gray-500 mt-1">為您的遊學之旅量身打造的互動規劃工具</p>
+        </div>
+    </header>
+
+    <nav class="bg-white shadow-sm">
+        <div class="container mx-auto flex justify-center space-x-2 md:space-x-4 p-2">
+            <button data-tab="overview" class="tab-button active text-sm md:text-base font-medium py-2 px-3 md:px-6 rounded-t-lg">行程總覽</button>
+            <button data-tab="explore" class="tab-button text-sm md:text-base font-medium py-2 px-3 md:px-6 rounded-t-lg">主題探索</button>
+            <button data-tab="info" class="tab-button text-sm md:text-base font-medium py-2 px-3 md:px-6 rounded-t-lg">實用資訊</button>
+            <button data-tab="budget" class="tab-button text-sm md:text-base font-medium py-2 px-3 md:px-6 rounded-t-lg">預算規劃</button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 md:p-8">
+        <section id="overview" class="section active">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold mb-4 text-center text-gray-700">一個月行程結構</h2>
+                <p class="text-center text-gray-600 mb-6">這是一個為期四週的行程結構範例。平日早上9點至下午3點為您的遊學時間，其餘時間則可自由安排我們為您規劃的活動。您可以點擊其他分頁，深入探索各項活動與實用資訊。</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Week 1-4 -->
+                    <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                        <h3 class="font-bold text-lg text-center mb-3 text-teal-700">第一週：城市初探與周邊</h3>
+                        <ul class="space-y-2 text-gray-600 text-sm">
+                            <li><strong>週一至週五:</strong> 遊學團。下午探索市區博物館、美術館、特色咖啡廳。</li>
+                            <li><strong>週六:</strong> 奧克蘭周邊一日遊 (例如：激流島品酒)。</li>
+                            <li><strong>週日:</strong> 奧克蘭天空塔觀景，享受悠閒的城市時光。</li>
+                        </ul>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                        <h3 class="font-bold text-lg text-center mb-3 text-teal-700">第二週：地熱奇觀與文化</h3>
+                        <ul class="space-y-2 text-gray-600 text-sm">
+                            <li><strong>週一至週五:</strong> 遊學團。晚上可安排觀星或泡溫泉。</li>
+                            <li><strong>週末 (兩天一夜):</strong> 前往羅托路亞 (Rotorua)，體驗地熱景觀與毛利文化。</li>
+                        </ul>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                        <h3 class="font-bold text-lg text-center mb-3 text-teal-700">第三週：火山探險與湖光</h3>
+                        <ul class="space-y-2 text-gray-600 text-sm">
+                            <li><strong>週一至週五:</strong> 遊學團。下午進行湖邊散步或騎行。</li>
+                            <li><strong>週末 (兩天一夜):</strong> 探索陶波湖 (Lake Taupo) 與東加里羅國家公園 (Tongariro NP)。</li>
+                        </ul>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                        <h3 class="font-bold text-lg text-center mb-3 text-teal-700">第四週：魔戒場景與螢火蟲</h3>
+                        <ul class="space-y-2 text-gray-600 text-sm">
+                            <li><strong>週一至週五:</strong> 遊學團。規劃惜別派對，購買紀念品。</li>
+                            <li><strong>週六:</strong> 拜訪哈比村 (Hobbiton)，晚上前往懷托摩螢火蟲洞。</li>
+                            <li><strong>週日:</strong> 最後整理行囊，享受在紐西蘭的最後一天。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="explore" class="section">
+             <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold mb-4 text-center text-gray-700">主題探索</h2>
+                 <p class="text-center text-gray-600 mb-6">紐西蘭北島的魅力多樣，從奇幻的電影場景到壯麗的自然風光，再到深厚的原住民文化。您可以根據自己的興趣，點擊下方的按鈕篩選想探索的活動主題，為您的課餘和週末時光找到最棒的去處。</p>
+                <div id="filter-buttons" class="flex flex-wrap justify-center gap-2 mb-8">
+                    <button class="filter-btn bg-teal-500 text-white px-4 py-2 rounded-full" data-filter="all">所有主題</button>
+                    <button class="filter-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-full" data-filter="nature">自然奇觀</button>
+                    <button class="filter-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-full" data-filter="movie">魔戒探險</button>
+                    <button class="filter-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-full" data-filter="culture">毛利文化</button>
+                    <button class="filter-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-full" data-filter="city">城市漫遊</button>
+                    <button class="filter-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-full" data-filter="adventure">極限運動</button>
+                </div>
+                <div id="activity-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                </div>
+            </div>
+        </section>
+
+        <section id="info" class="section">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold mb-4 text-center text-gray-700">食衣住行實用資訊</h2>
+                <p class="text-center text-gray-600 mb-8">在紐西蘭生活一個月，了解當地的食衣住行資訊非常重要。這裡為您整理了一些實用建議，從如何穿衣應對多變的天氣，到交通工具的選擇與比較，助您更快融入當地生活。</p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left Column -->
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-xl font-bold mb-2 text-teal-700">食 (Food)</h3>
+                            <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                <li><strong>必試美食:</strong> Hangi (毛利傳統窯烤), Kiwi Burger, Fish and Chips, Pavlova (奶油水果蛋白餅)。</li>
+                                <li><strong>咖啡文化:</strong> 紐西蘭人熱愛咖啡，試試看當地的 Flat White。</li>
+                                <li><strong>超市採購:</strong> 主要超市有 Countdown, New World, Pak'nSave，自己開伙能節省不少開銷。</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold mb-2 text-teal-700">衣 (Clothing)</h3>
+                            <p class="text-gray-600 mb-2">紐西蘭天氣多變，即使是夏天，早晚溫差也大。建議採用「洋蔥式」穿搭法。</p>
+                            <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                <li><strong>必備衣物:</strong> 防水防風外套、保暖內層 (如羊毛衫)、健行鞋、太陽眼鏡、帽子。</li>
+                                <li><strong>四季一日:</strong> 一天內可能經歷四季天氣，隨身攜帶雨具和保暖衣物是明智之舉。</li>
+                            </ul>
+                        </div>
+                         <div>
+                            <h3 class="text-xl font-bold mb-2 text-teal-700">住 (Accommodation)</h3>
+                            <p class="text-gray-600">您已選擇 Airbnb，這是體驗當地生活的好方式。預訂時請注意：</p>
+                            <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                <li><strong>地點:</strong> 選擇靠近大眾運輸或學校的地點，方便通勤。</li>
+                                <li><strong>評價:</strong> 仔細閱讀其他房客的評價，特別是關於清潔度和房東的部分。</li>
+                                <li><strong>設備:</strong> 確認廚房、洗衣設備是否齊全，這對長期居住很重要。</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Right Column -->
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-teal-700">行 (Transport) - 交通方式成本比較</h3>
+                        <p class="text-gray-600 mb-4">北島的交通選擇多樣，長途旅行建議租車，城市內則可依賴大眾運輸。以下是不同交通方式的成本估算，幫助您做出最佳選擇。</p>
+                        <div class="chart-container">
+                            <canvas id="transportChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="budget" class="section">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold mb-4 text-center text-gray-700">互動式預算規劃</h2>
+                <p class="text-center text-gray-600 mb-8">這是一個簡單的預算規劃工具。您可以在下方的欄位輸入各項預計花費（以紐幣計算），並設定目前的匯率，系統將會即時換算出台幣總額，右側的圖表也會同步更新您的支出分佈。</p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div id="budget-inputs" class="space-y-4">
+                        <div>
+                            <label for="budget-food" class="block text-sm font-medium text-gray-700">餐飲伙食 (NZD)</label>
+                            <input type="number" id="budget-food" class="budget-input mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" value="1200" placeholder="例如：1200">
+                        </div>
+                        <div>
+                            <label for="budget-transport" class="block text-sm font-medium text-gray-700">交通費用 (NZD)</label>
+                            <input type="number" id="budget-transport" class="budget-input mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" value="1000" placeholder="例如：1000">
+                        </div>
+                        <div>
+                            <label for="budget-activities" class="block text-sm font-medium text-gray-700">娛樂活動 (NZD)</label>
+                            <input type="number" id="budget-activities" class="budget-input mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" value="1500" placeholder="例如：1500">
+                        </div>
+                         <div>
+                            <label for="budget-shopping" class="block text-sm font-medium text-gray-700">購物雜支 (NZD)</label>
+                            <input type="number" id="budget-shopping" class="budget-input mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" value="500" placeholder="例如：500">
+                        </div>
+                        <div class="pt-2">
+                             <label for="exchange-rate" class="block text-sm font-medium text-gray-700">紐幣對台幣匯率 (1 NZD = ? TWD)</label>
+                             <input type="number" id="exchange-rate" class="budget-input mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" value="20.0" step="0.01" placeholder="例如：20.0">
+                        </div>
+                        <div class="pt-4 border-t mt-4">
+                            <p class="text-lg font-bold">總預計花費: <span id="total-budget-nzd" class="text-teal-600"></span></p>
+                            <p class="text-lg font-bold mt-2">約等於台幣: <span id="total-budget-twd" class="text-blue-600"></span></p>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="budgetChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center p-6 text-gray-500 text-sm">
+        <p>&copy; 2025 紐西蘭北島深度探索計畫. 祝您旅途愉快！</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabs = document.querySelectorAll('.tab-button');
+            const sections = document.querySelectorAll('.section');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const target = tab.getAttribute('data-tab');
+
+                    tabs.forEach(t => {
+                        t.classList.remove('active');
+                        t.classList.add('hover:bg-gray-100');
+                    });
+                    tab.classList.add('active');
+                    tab.classList.remove('hover:bg-gray-100');
+
+                    sections.forEach(section => {
+                        if (section.id === target) {
+                            section.classList.add('active');
+                        } else {
+                            section.classList.remove('active');
+                        }
+                    });
+                });
+            });
+
+            const activities = [
+                { id: 1, category: 'nature', title: '懷托摩螢火蟲洞', description: '乘船靜靜駛過地下洞穴，欣賞成千上萬的螢火蟲，如同星空般璀璨。', recTime: '半日遊' },
+                { id: 2, category: 'movie', title: '哈比村電影場景', description: '走進《魔戒》與《哈比人》的真實拍攝地，在袋底洞前拍照，並在綠龍酒店喝一杯。', recTime: '半日遊' },
+                { id: 3, category: 'culture', title: '羅托路亞毛利村', description: '在 Te Puia 或 Mitai 毛利村體驗傳統 Hangi 大餐、觀賞戰舞表演，並欣賞間歇泉。', recTime: '半日或一日遊' },
+                { id: 4, category: 'city', title: '奧克蘭天空塔', description: '登上南半球最高的建築，360度俯瞰奧克蘭全景，膽子大的可以嘗試空中漫步。', recTime: '下午/晚上' },
+                { id: 5, category: 'adventure', title: '陶波湖高空跳傘', description: '從15000英尺的高空一躍而下，將壯麗的陶波湖和火山景觀盡收眼底。', recTime: '半日遊' },
+                { id: 6, category: 'nature', title: '教堂灣與熱水海灘', description: '在科羅曼德半島，您可以划船穿越壯觀的教堂灣，或在退潮時去熱水海灘挖一個自己的溫泉池。', recTime: '一日遊' },
+                { id: 7, category: 'nature', title: '東加里羅國家公園健行', description: '挑戰被譽為紐西蘭最棒單日健行步道的「末日火山」路線，沿途風景彷彿置身異世界。', recTime: '週末長途' },
+                { id: 8, category: 'city', title: '威靈頓 Te Papa 國家博物館', description: '紐西蘭的國家博物館，透過創新的互動展覽，深入了解紐西蘭的歷史、文化與自然。', recTime: '下午' },
+                { id: 9, category: 'culture', title: '島嶼灣探索', description: '這裡是毛利人與歐洲人最早接觸的地方，具有重要歷史意義。可以乘船出海，觀賞海豚。', recTime: '週末長途' },
+            ];
+
+            const activityGrid = document.getElementById('activity-grid');
+            const filterButtons = document.querySelectorAll('.filter-btn');
+
+            const displayActivities = (filteredActivities) => {
+                activityGrid.innerHTML = '';
+                filteredActivities.forEach(activity => {
+                    const card = document.createElement('div');
+                    card.className = 'activity-card bg-gray-50 border border-gray-200 rounded-lg p-4 flex flex-col';
+                    card.innerHTML = `
+                        <h4 class="text-lg font-bold text-teal-800">${activity.title}</h4>
+                        <p class="text-gray-600 mt-2 flex-grow">${activity.description}</p>
+                        <span class="text-sm font-medium text-white bg-teal-500 rounded-full px-3 py-1 mt-4 self-start">${activity.recTime}</span>
+                    `;
+                    activityGrid.appendChild(card);
+                });
+            };
+
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const filter = button.getAttribute('data-filter');
+                    filterButtons.forEach(btn => {
+                        btn.classList.remove('bg-teal-500', 'text-white');
+                        btn.classList.add('bg-gray-200', 'text-gray-700');
+                    });
+                    button.classList.add('bg-teal-500', 'text-white');
+                    button.classList.remove('bg-gray-200', 'text-gray-700');
+                    
+                    if (filter === 'all') {
+                        displayActivities(activities);
+                    } else {
+                        const filtered = activities.filter(act => act.category === filter);
+                        displayActivities(filtered);
+                    }
+                });
+            });
+
+            displayActivities(activities);
+            
+            let transportChart, budgetChart;
+
+            const transportData = {
+                labels: ['租車 (小型車)', '長途巴士', '國內航班 (主要城市間)'],
+                datasets: [{
+                    label: '一個月預估花費 (NZD)',
+                    data: [1800, 600, 800],
+                    backgroundColor: ['#6495ED', '#8FBC8F', '#A6C4A6'],
+                    borderColor: ['#4682B4', '#556B2F', '#6A8E6A'],
+                    borderWidth: 1
+                }]
+            };
+
+            const budgetInputEls = document.querySelectorAll('.budget-input');
+            const totalBudgetNzdEl = document.getElementById('total-budget-nzd');
+            const totalBudgetTwdEl = document.getElementById('total-budget-twd');
+            const exchangeRateEl = document.getElementById('exchange-rate');
+
+
+            const updateBudget = () => {
+                let totalNzd = 0;
+                const budgetData = [];
+                
+                document.querySelectorAll('#budget-inputs input[type="number"]:not(#exchange-rate)').forEach(input => {
+                    const value = parseFloat(input.value) || 0;
+                    totalNzd += value;
+                    budgetData.push(value);
+                });
+
+                const exchangeRate = parseFloat(exchangeRateEl.value) || 0;
+                const totalTwd = totalNzd * exchangeRate;
+
+                totalBudgetNzdEl.textContent = totalNzd.toLocaleString() + ' NZD';
+                totalBudgetTwdEl.textContent = '約 ' + totalTwd.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' TWD';
+                
+                budgetChart.data.datasets[0].data = budgetData;
+                budgetChart.update();
+            };
+            
+            function createTransportChart() {
+                const transportCtx = document.getElementById('transportChart').getContext('2d');
+                if (transportChart) transportChart.destroy();
+                transportChart = new Chart(transportCtx, {
+                    type: 'bar',
+                    data: transportData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: '北島主要交通方式月度成本預估'
+                            },
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '費用 (NZD)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function createBudgetChart() {
+                const budgetCtx = document.getElementById('budgetChart').getContext('2d');
+                if (budgetChart) budgetChart.destroy();
+                budgetChart = new Chart(budgetCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['餐飲伙食', '交通費用', '娛樂活動', '購物雜支'],
+                        datasets: [{
+                            label: '預算分配',
+                            data: [],
+                            backgroundColor: ['#6495ED', '#8FBC8F', '#F0E68C', '#E9967A'],
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                             title: {
+                                display: true,
+                                text: '您的預算支出分佈'
+                            },
+                            legend: {
+                                position: 'top',
+                            },
+                        }
+                    }
+                });
+                updateBudget();
+            }
+
+            createTransportChart();
+            createBudgetChart();
+            
+            budgetInputEls.forEach(input => input.addEventListener('input', updateBudget));
+        });
+    </script>
+</body>
+</html>
+
